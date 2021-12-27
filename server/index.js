@@ -41,6 +41,25 @@ app.use(
       },
     })
   );
+app.get('/dashboard',verifyJWT,(req,res)=>{
+    res.send("YOU ARE AUTHENTICATED CONGRATS");
+})
+ const verifyJWT = (req, res , next)=>{
+     const token = req.headers["x-access-token"]
+     if(!token){
+         res.send("we need a token");
+     }else{
+         jwt.verify(token, "jwtSecret",(err,decoded)=>{
+             if(err){
+                 res.json({auth:false, message: "U failed to autenticate"});
+             }else{
+                 req.userId = decoded.id;
+                 next();
+
+             }
+         });
+     }
+ }
 app.get("/login", (req, res) => {
     if (req.session.user) {
       res.send({ loggedIn: true, user: req.session.user });
@@ -69,19 +88,39 @@ app.get("/login", (req, res) => {
                  expiresIn:300,
              })
              rep.session.user = result;
-              res.send(result);
+              res.json({auth: true , token:token , result : result});
             } else {
-              res.send({ message: "Wrong username/password combination!" });
+                res.json({auth:false ,message:"wrong username/password combination"});;
             }
           });
         } else {
-          res.send({ message: "User doesn't exist" });
+          res.json({auth: false , message:"no user exists"});
         }
       }
     );
   });
   
-
+  app.post("/register", (req, res) => {
+    const username = req.body.username;
+    const password = req.body.password;
+    const email = req.body.email;
+    const firstname = req.body.firstname;
+    const lastname = req.body.lastname;
+  
+    bcrypt.hash(password, saltRounds, (err, hash) => {
+      if (err) {
+        console.log(err);
+      }
+  
+      db.query(
+        "INSERT INTO users (username, password,email,firstname,lastname) VALUES (?,?,?,?,?)",
+        [username, hash],
+        (err, result) => {
+          console.log(err);
+        }
+      );
+    });
+  });
 // app.use(cors());
 // app.use(express.json());
 // app.use(bodyParser.urlencoded({extended: true}));
