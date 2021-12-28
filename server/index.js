@@ -27,8 +27,8 @@ const jwt = require("jsonwebtoken")
 const db = mysql.createPool({
     host: "localhost",
     user: "root",
-    password: "griffinpw@159",
-    database: "sayas"
+    password: "mysql",
+    database: "sayas_db"
 });
 app.use(
     session({
@@ -70,31 +70,34 @@ app.get("/login", (req, res) => {
   });
   
   app.post("/login", (req, res) => {
-    const username = req.body.username;
+    const email = req.body.email;
     const password = req.body.password;
-  
+
     db.query(
-      "SELECT * FROM users WHERE username = ?;",
-      username,
+      "SELECT * FROM user WHERE email = ?;",
+      [email],
       (err, result) => {
         if (err) {
           res.send({ err: err });
         }
   
         if (result.length > 0) {
+         
           bcrypt.compare(password, result[0].password, (error, response) => {
             if (response) {
              const id = result[0].id;
-             const token = jwt.sign({i},"jwtSecret",{
+             const token = jwt.sign({id},"jwtSecret",{
                  expiresIn:300,
              })
-             rep.session.user = result;
+             req.session.user = result;
               res.json({auth: true , token:token , result : result});
             } else {
                 res.json({auth:false ,message:"wrong username/password combination"});;
             }
           });
         } else {
+         
+         console.log("HAHAHAHAAH");
           res.json({auth: false , message:"no user exists"});
         }
       }
@@ -114,10 +117,16 @@ app.get("/login", (req, res) => {
       }
   
       db.query(
-        "INSERT INTO users (username, password,email,firstname,lastname) VALUES (?,?,?,?,?)",
-        [username, hash],
+        "INSERT INTO user (username, password,email,first_name,last_name) VALUES (?,?,?,?,?)",
+        [username,hash,email,firstname,lastname],
         (err, result) => {
-          console.log(err);
+          if(err){
+           console.log(err);
+           res.json({status:"fail"});
+          }
+          else{
+            res.json({status: "ok"});
+          }
         }
       );
     });
