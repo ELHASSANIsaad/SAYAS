@@ -27,8 +27,8 @@ const jwt = require("jsonwebtoken")
 const db = mysql.createPool({
     host: "localhost",
     user: "root",
-    password: "123456",
-    database: "sayas_db"
+    password: "griffinpw@159",
+    database: "sayas"
 });
 app.use(
     session({
@@ -41,9 +41,7 @@ app.use(
       },
     })
   );
-app.get('/dashboard',verifyJWT,(req,res)=>{
-    res.send("YOU ARE AUTHENTICATED CONGRATS");
-})
+
  const verifyJWT = (req, res , next)=>{
      const token = req.headers["x-access-token"]
      if(!token){
@@ -60,6 +58,9 @@ app.get('/dashboard',verifyJWT,(req,res)=>{
          });
      }
  }
+ app.get('/dashboard',verifyJWT,(req,res)=>{
+  res.send("YOU ARE AUTHENTICATED CONGRATS");
+})
 app.get("/login", (req, res) => {
     if (req.session.user) {
       res.send({ loggedIn: true, user: req.session.user });
